@@ -30,7 +30,13 @@
 #include <QString>
 #include <QTextStream>
 
+
 #include "LogFileReader.h"
+
+namespace
+{
+    const int OK_LENGTH = 32 ;
+}
 
 LogFileReader::LogFileReader()
 {
@@ -72,14 +78,59 @@ bool LogFileReader::readAll(const QString& fileName)
 }
 
 // File input is a csv file in the format of hh:mm:ss:zzz, voltage, current
-bool LogFileReader::parseLine(const QString& line, BatteryData& batteryData) const
+// & - pass by reference
+bool LogFileReader::parseLine(const QString& line, BatteryData& batteryData) const 
 {
     // TODO implement this first
 
     // This is here to the compiler happy. Otherwise the compile
     // will have an error warning about an unused variable. Remove this
     // when you use it.
+
+	
     Q_UNUSED(line);
     Q_UNUSED(batteryData);
+
+    bool validData = true;
+
+    QTime aTime;
+
+	double aVoltage;
+	double aCurrent;
+
+	QStringList aList;
+
+    int lineLength;
+
+    lineLength = line.length();
+
+    if (lineLength != OK_LENGTH){
+        return false;
+    }
+
+    aList = line.split(", ", QString::SkipEmptyParts);
+
+    aTime = QTime::fromString(aList[0],"hh:mm:ss.zzz");
+
+    if (aTime.isValid() == false){
+        return false;
+    }
+
+    aVoltage = aList[1].toDouble(&validData);
+
+    aCurrent = aList[2].toDouble(&validData);
+
+
+    if (validData == false)
+    {
+        return false;
+    }
+    else{
+
+    batteryData.time = aTime;
+    batteryData.voltage = aVoltage;
+    batteryData.current = aCurrent;
+
     return true;
+    }
 }
